@@ -42,5 +42,17 @@ public class UsuariRepository {
         String sql = "SELECT * FROM usuaris";
         return jdbcTemplate.query(sql, new UsuariRowMapper());
     }
+    
+   public int update(Long id, Usuari usuari) {
+    String sql = "UPDATE usuaris SET name = ?, description = ?, email = ?, password = ?, ultimAcces = ?, dataUpdated = NOW() WHERE id = ?";
+    return jdbcTemplate.update(sql,
+            usuari.getName(),
+            usuari.getDescription(),
+            usuari.getEmail(),
+            usuari.getPassword(),
+            usuari.getUltimAcces(),
+            id);
+    }
+
 
 }
