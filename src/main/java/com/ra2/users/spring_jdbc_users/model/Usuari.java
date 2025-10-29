@@ -1,6 +1,6 @@
 package com.ra2.users.spring_jdbc_users.model;
 
-import java.security.Timestamp;
+import java.sql.Timestamp;
 
 public class Usuari {
     private Long id;
@@ -23,6 +23,7 @@ public class Usuari {
         this.dataCreated = dataCreated;
         this.dataUpdated = dataUpdated;
     }
+
     public Usuari(){}
     public Long getId() {
         return id;
@@ -57,7 +58,7 @@ public class Usuari {
     public Timestamp getUltimAcces() {
         return ultimAcces;
     }
-    public void setUltimAcces(Timestamp ultimAcces) {
+    public void setUltimAcces(java.sql.Timestamp ultimAcces) {
         this.ultimAcces = ultimAcces;
     }
     public Timestamp getDataCreated() {
