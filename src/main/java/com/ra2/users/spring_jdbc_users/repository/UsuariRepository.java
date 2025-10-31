@@ -59,5 +59,10 @@ public class UsuariRepository {
             id);
     }
 
+    public int patch(long id, String newName){
+        String sql = "UPDATE usuaris SET name = ?, dataUpdated = NOW() WHERE id = ?";
+        return jdbcTemplate.update(sql, newName, id);
+    }
+
 
 }
