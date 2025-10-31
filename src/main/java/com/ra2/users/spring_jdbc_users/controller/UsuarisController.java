@@ -43,6 +43,17 @@ public class UsuarisController {
             return ResponseEntity.ok(usuaris);
         }
     }
+    @GetMapping("users/{user_id}")
+    public ResponseEntity<List<Usuari>> getUserById(@PathVariable Long user_id) {
+       List<Usuari> usuaris =  usuariRepository.findUserById(user_id);
+        if(usuaris == null || usuaris.isEmpty()){
+            return ResponseEntity.ok(null);
+        }else{
+            return ResponseEntity.ok(usuaris);
+        }
+    }
+
+
     @PutMapping("users/{user_id}")
     public ResponseEntity<String> putUsuari(@PathVariable Long user_id, @RequestBody Usuari usuari) {
                
