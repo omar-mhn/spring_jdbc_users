@@ -68,12 +68,12 @@ public class UsuarisController {
         }
 
     @PatchMapping("users/{user_id}/name")
-    public ResponseEntity<List<Usuari>> patchUser(@PathVariable long userId,@RequestParam String name) {
-        int rows = usuariRepository.patch(userId, name);
+    public ResponseEntity<List<Usuari>> patchUser(@PathVariable long user_id,@RequestParam String name) {
+        int rows = usuariRepository.patch(user_id, name);
         if(rows == 0){
             return ResponseEntity.ok(null);
         }
-        List<Usuari> updatedUser =usuariRepository.findUserById(userId);
+        List<Usuari> updatedUser =usuariRepository.findUserById(user_id);
         return ResponseEntity.ok(updatedUser);
     }
     @DeleteMapping("users/{user_id}")
