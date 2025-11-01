@@ -32,7 +32,7 @@ public class UsuarisController {
     @PostMapping("users")
     public ResponseEntity<String> createUser(@RequestBody Usuari user) {
         usuariRepository.save(user);
-        return ResponseEntity.status(HttpStatus.CREATED).body("Usuario creado correctamente");
+        return ResponseEntity.ok("Usuario creado correctamente");
     }
     
     @GetMapping("users")
@@ -58,28 +58,26 @@ public class UsuarisController {
     @PutMapping("users/{user_id}")
     public ResponseEntity<String> putUsuari(@PathVariable Long user_id, @RequestBody Usuari usuari) {
                
-    int rowsUpdated = usuariRepository.update(user_id, usuari);
+        int rowsUpdated = usuariRepository.update(user_id, usuari);
 
-    if (rowsUpdated == 0) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("Usuari amb id " +user_id + " no trobat");
+        if (rowsUpdated == 0) {
+            return ResponseEntity.ok("Usuari amb id " +user_id + " no trobat");
+        }
+
+        return ResponseEntity.ok("Informació de l'usuari actualitzada correctament");
+        }
+
+    @PatchMapping("users/{user_id}/name")
+    public ResponseEntity<List<Usuari>> updateName(@PathVariable("user_id") long userId,@RequestParam String name) {
+        int rows = usuariRepository.patch(userId, name);
+        if(rows == 0){
+            return ResponseEntity.ok(null);
+        }
+        List<Usuari> updatedUser =usuariRepository.findUserById(userId);
+        return ResponseEntity.ok(updatedUser);
     }
-
-    return ResponseEntity.status(HttpStatus.OK)
-            .body("Informació de l'usuari actualitzada correctament");
-    }
-
-    @PatchMapping("/{user_id}/name")
-public ResponseEntity<Usuari> updateName(
-        @PathVariable("user_id") long userId,
-        @RequestParam("name") String name) {
-
-    int rows = usuariRepository.patch(userId, name);
-
-    
-}
-    
-    
+        
+   
     
     
 }
