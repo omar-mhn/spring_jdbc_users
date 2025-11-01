@@ -64,5 +64,11 @@ public class UsuariRepository {
         return jdbcTemplate.update(sql, newName, id);
     }
 
+    public int delete(Long id){
+        String sql = "DELETE FROM usuaris WHERE id = ?";
+        return jdbcTemplate.update(sql, id);
+    }
+    
+
 
 }

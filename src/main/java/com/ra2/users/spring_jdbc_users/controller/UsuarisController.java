@@ -6,14 +6,14 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ra2.users.spring_jdbc_users.model.Usuari;
 import com.ra2.users.spring_jdbc_users.repository.UsuariRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -68,13 +68,23 @@ public class UsuarisController {
         }
 
     @PatchMapping("users/{user_id}/name")
-    public ResponseEntity<List<Usuari>> updateName(@PathVariable("user_id") long userId,@RequestParam String name) {
+    public ResponseEntity<List<Usuari>> patchUser(@PathVariable long userId,@RequestParam String name) {
         int rows = usuariRepository.patch(userId, name);
         if(rows == 0){
             return ResponseEntity.ok(null);
         }
         List<Usuari> updatedUser =usuariRepository.findUserById(userId);
         return ResponseEntity.ok(updatedUser);
+    }
+    @DeleteMapping("users/{user_id}")
+    public ResponseEntity<String> deleteUser(@PathVariable Long user_id){
+        int rows = usuariRepository.delete(user_id);
+
+        if (rows == 0){
+            return ResponseEntity.ok("Usuari amb id " + user_id + " no trobat");
+        }
+            return ResponseEntity.ok("Usuari eliminat correctament");
+
     }
         
    
