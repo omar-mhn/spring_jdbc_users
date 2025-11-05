@@ -11,9 +11,10 @@ public class Usuari {
     private Timestamp ultimAcces;
     private Timestamp dataCreated;
     private Timestamp dataUpdated;
+    private String image_path;
     
     public Usuari(Long id, String name, String description, String email, String password, Timestamp ultimAcces,
-            Timestamp dataCreated, Timestamp dataUpdated) {
+            Timestamp dataCreated, Timestamp dataUpdated, String image_path) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -22,7 +23,11 @@ public class Usuari {
         this.ultimAcces = ultimAcces;
         this.dataCreated = dataCreated;
         this.dataUpdated = dataUpdated;
+        this.image_path = image_path;
+    
     }
+
+    
 
     public Usuari(){}
     public Long getId() {
@@ -31,6 +36,7 @@ public class Usuari {
     public void setId(Long id) {
         this.id = id;
     }
+
     public String getName() {
         return name;
     }
@@ -82,6 +88,16 @@ public class Usuari {
                 + getPassword() + ", getUltimAcces()=" + getUltimAcces() + ", getDataCreated()=" + getDataCreated()
                 + ", getDataUpdated()=" + getDataUpdated() + ", getClass()=" + getClass() + ", hashCode()=" + hashCode()
                 + ", toString()=" + super.toString() + "]";
+    }
+
+
+
+    public String getImage_path() {
+        return image_path;
+    }
+
+    public void setImage_path(String image_path) {
+        this.image_path = image_path;
     }
     
     
