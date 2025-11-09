@@ -2,6 +2,7 @@ package com.ra2.users.spring_jdbc_users.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ra2.users.spring_jdbc_users.model.Usuari;
 import com.ra2.users.spring_jdbc_users.service.UserService;
@@ -33,6 +34,15 @@ public class UsuarisController {
     public ResponseEntity<String> createUser(@RequestBody Usuari user) {
         UserService.addUser(user);
         return ResponseEntity.ok("Usuario creado correctamente");
+    }
+    @PostMapping("/users/{user_id}/image")
+    public ResponseEntity<String> postImage(@PathVariable long user_id, @RequestParam ("imageFile") MultipartFile imageFile) {
+        try{
+            String imgUrl = UserService.saveUserImage(user_id, imageFile);
+            return ResponseEntity.ok(imgUrl);
+        }catch (Exception e) {
+            return ResponseEntity.status(400).body(e.getMessage());
+        }
     }
     
     @GetMapping("users")
@@ -86,6 +96,8 @@ public class UsuarisController {
             return ResponseEntity.ok("Usuari eliminat correctament");
 
     }
+ 
+    
         
    
     

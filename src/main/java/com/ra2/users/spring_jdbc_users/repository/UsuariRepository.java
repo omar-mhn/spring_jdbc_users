@@ -68,6 +68,12 @@ public class UsuariRepository {
         String sql = "DELETE FROM usuaris WHERE id = ?";
         return jdbcTemplate.update(sql, id);
     }
+
+    public int updateImagePath (long id, String imagePath){
+        String sql = "UPDATE usuaris SET image_path = ?, dataUpdated = NOW() WHERE id = ?";
+        return jdbcTemplate.update(sql, imagePath, id);
+
+    }
     
 
 
