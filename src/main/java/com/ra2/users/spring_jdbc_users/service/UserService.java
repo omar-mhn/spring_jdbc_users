@@ -47,6 +47,7 @@ public class UserService {
     public String saveUserImage(long userId, MultipartFile imagFile) throws Exception{
         // Verificar el usuario 
         List <Usuari> user = usuariRepository.findUserById(userId);
+        System.out.println(user);
         if(user.isEmpty()){
             throw new Exception("Usuari amb id " + userId + " no trobat");
         }
