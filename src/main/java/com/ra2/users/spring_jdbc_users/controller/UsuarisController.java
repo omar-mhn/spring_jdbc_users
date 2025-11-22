@@ -44,6 +44,19 @@ public class UsuarisController {
             return ResponseEntity.status(400).body(e.getMessage());
         }
     }
+    @PostMapping("users/upload-csv")
+    public ResponseEntity<String> postCsv(@RequestParam MultipartFile csvFile ) {
+       if (csvFile.isEmpty()) {
+            return ResponseEntity.badRequest().body("El archivo CSV está vacío");
+        }
+        try {
+            int totalReg = UserService.saveUserCsv(csvFile);
+            return ResponseEntity.ok("Número de usuarios insertados: "+ totalReg);
+
+        }catch (Exception e){
+            return ResponseEntity.status(500).body("Error al procesar el archivo CSV: " + e.getMessage());
+        }
+    }
     
     @GetMapping("users")
     public ResponseEntity<List<Usuari>> getAllUsers() {
@@ -96,6 +109,9 @@ public class UsuarisController {
             return ResponseEntity.ok("Usuari eliminat correctament");
 
     }
+
+   
+    
  
     
         

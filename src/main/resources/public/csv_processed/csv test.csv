@@ -1,0 +1,4 @@
+"name,description,email,password"
+"Juan,Administrador,juan@example.com,1234"
+"Ana,Usuario,ana@example.com,abcd"
+"Luis,Invitado,luis@example.com,pass"

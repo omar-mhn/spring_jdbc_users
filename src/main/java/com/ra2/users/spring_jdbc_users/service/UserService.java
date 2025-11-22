@@ -1,11 +1,19 @@
 package com.ra2.users.spring_jdbc_users.service;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.sql.Timestamp;
+
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -79,6 +87,59 @@ public class UserService {
         //URL de l?image
         return imagePath;
     }
+    public int saveUserCsv(MultipartFile csvFile){
+        
+            int registresInserits = 0;
+        try(BufferedReader br = new BufferedReader(new InputStreamReader(csvFile.getInputStream()))){
 
-    
+            String linia; 
+            int numLinia = 0;
+
+                while ((linia = br.readLine()) != null) {
+                    numLinia ++;
+                    if(numLinia == 1){
+                        continue; // Saltar capçalera
+                    }
+                    if (linia.trim().isEmpty()) {
+                    continue;
+                    }
+                    String [] col = linia.split(",");
+                    if (col.length < 4) continue;
+
+                    String name = col[0];
+                    String description = col[1];
+                    String email = col[2];
+                    String password = col[3];
+
+                    Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+
+                    Usuari user = new Usuari();
+                    user.setName(name);
+                    user.setDescription(description);
+                    user.setEmail(email);
+                    user.setPassword(password);
+                    user.setDataCreated(timestamp);
+                    user.setDataUpdated(timestamp);
+                    user.setUltimAcces(timestamp);
+
+                    usuariRepository.save(user);
+                    registresInserits++;           
+                }
+            
+                Path csvFolder = Paths.get("src/main/resources/public/csv_processed");
+                    if(!Files.exists(csvFolder)){
+                        Files.createDirectories(csvFolder);
+                    }
+                    String originalFileName = csvFile.getOriginalFilename();
+                    Path filePath = csvFolder.resolve(originalFileName);
+                    Files.copy(csvFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        
+        } catch (IOException e) {
+            // Errors generals d'E/S
+            System.err.println("ERROR d'accés al fitxer: " + e.getMessage());
+        }
+            return registresInserits;
+    }
 }
+    
+
