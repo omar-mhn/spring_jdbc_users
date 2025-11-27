@@ -14,7 +14,7 @@ public class Usuari {
     private String image_path;
     
     public Usuari(Long id, String name, String description, String email, String password, Timestamp ultimAcces,
-            Timestamp dataCreated, Timestamp dataUpdated, String image_path) {
+            Timestamp dataCreated, Timestamp dataUpdated) {
         this.id = id;
         this.name = name;
         this.description = description;
@@ -23,7 +23,18 @@ public class Usuari {
         this.ultimAcces = ultimAcces;
         this.dataCreated = dataCreated;
         this.dataUpdated = dataUpdated;
-        this.image_path = image_path;
+    
+    }
+    public Usuari( String name, String description, String email, String password, Timestamp ultimAcces,
+            Timestamp dataCreated, Timestamp dataUpdated) {
+        this.name = name;
+        this.description = description;
+        this.email = email;
+        this.password = password;
+        this.ultimAcces = ultimAcces;
+        this.dataCreated = dataCreated;
+        this.dataUpdated = dataUpdated;
+        
     
     }
 

@@ -18,7 +18,8 @@ import java.sql.Timestamp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.ra2.users.spring_jdbc_users.model.Usuari;
 import com.ra2.users.spring_jdbc_users.repository.UsuariRepository;
 
@@ -27,6 +28,8 @@ public class UserService {
 
    @Autowired
     UsuariRepository usuariRepository;
+    @Autowired
+    ObjectMapper mapper;
 
     public List<Usuari> findAll() {
         return usuariRepository.findAll();
@@ -89,7 +92,8 @@ public class UserService {
     }
     public int saveUserCsv(MultipartFile csvFile){
         
-            int registresInserits = 0;
+        int comptador = 0;
+        Timestamp now = new Timestamp(System.currentTimeMillis()); 
         try(BufferedReader br = new BufferedReader(new InputStreamReader(csvFile.getInputStream()))){
 
             String linia; 
@@ -123,7 +127,7 @@ public class UserService {
                     user.setUltimAcces(timestamp);
 
                     usuariRepository.save(user);
-                    registresInserits++;           
+                    comptador++;           
                 }
             
                 Path csvFolder = Paths.get("src/main/resources/public/csv_processed");
@@ -138,8 +142,71 @@ public class UserService {
             // Errors generals d'E/S
             System.err.println("ERROR d'accés al fitxer: " + e.getMessage());
         }
-            return registresInserits;
+            return comptador;
     }
+
+
+    public int saveUserJson(MultipartFile jsonFile){
+        int comptador = 0;
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        // Leer el contenido del archivo JSON
+        try{
+            JsonNode arrel = mapper.readTree(jsonFile.getInputStream());
+            JsonNode data = arrel.path("data");
+            // Obtener el valor de count y control
+            int count = data.path("count").asInt();
+            String control = data.path("control").asText();
+            //Comprobar que el control sea "OK"
+            if (!control.equals("OK")){
+                return -1 ; // Control incorrecto
+            }
+            JsonNode users = data.path("users");
+            //Comprobar que la lista de usuarios tenga el mismo tamaño que count 
+
+            if(users.size() != count ){
+                return -3; // El número de usuarios no coincide
+            }
+
+            for(JsonNode user:users){
+                String name = user.path("name").asText();
+                String description = user.path("description").asText();
+                String email = user.path("email").asText();
+                String password = user.path("password").asText();
+
+                Usuari usuari = new Usuari(name, description, email, password, now, now, now);
+                
+            // Intentar guardar en la base de datos
+                try{
+                    usuariRepository.save(usuari);
+                    comptador ++;
+                } catch (Exception e) {
+                System.err.println("Error guardando el usuario");
+                }
+            }
+            
+        // Error leyendo el JSON
+        }catch(Exception e){
+            return -2;
+        }
+        //Guardar el archivo JSON procesado en la carpeta json_processed
+        try{
+         // Crear la carpeta si no existe
+            Path directory = Paths.get("src/main/resources/public/json_processed/");
+            Path targetFile = directory.resolve(jsonFile.getOriginalFilename());
+
+            Files.createDirectories(directory);
+
+            // Guardar el archivo, reemplazando si ya existe
+            Files.copy(jsonFile.getInputStream(), targetFile, StandardCopyOption.REPLACE_EXISTING);
+        
+        }catch (Exception e){
+            System.err.println("No se ha podido guardar el JSON");
+        }
+          
+        return comptador;
+        
+    }
+
 }
     
 

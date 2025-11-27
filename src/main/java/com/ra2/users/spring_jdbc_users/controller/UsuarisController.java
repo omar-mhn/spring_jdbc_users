@@ -9,7 +9,7 @@ import com.ra2.users.spring_jdbc_users.service.UserService;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,6 +57,32 @@ public class UsuarisController {
             return ResponseEntity.status(500).body("Error al procesar el archivo CSV: " + e.getMessage());
         }
     }
+    @PostMapping("users/upload-json")
+    public ResponseEntity<String> postJson(@RequestParam MultipartFile jsonFile) {
+        if (jsonFile.isEmpty()) {
+            return ResponseEntity.badRequest().body("El archivo CSV está vacío");
+        }
+        try {
+            // Llamada al servicio que procesa el JSON y guarda los usuarios.
+            int result = UserService.saveUserJson(jsonFile);
+
+            if (result == -1){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Control incorrecto en el JSON (control != \"OK\").");
+            } else if(result == -2){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error leyendo o parseando el JSON.");
+            }else if(result == -3){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El campo count no coincide con el número de usuarios en el JSON.");
+            }else{
+                return ResponseEntity.status(HttpStatus.OK).body("Registros añadidos: " + result);
+            }
+
+        }catch(Exception e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error interno al procesar el archivo.");
+        }
+        
+        
+    }
+    
     
     @GetMapping("users")
     public ResponseEntity<List<Usuari>> getAllUsers() {
