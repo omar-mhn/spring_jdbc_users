@@ -1,0 +1,68 @@
+{
+  "data": {
+    "count": 10,
+    "control": "OK",
+    "users": [
+      {
+        "name": "Carlos",
+        "description": "Editor",
+        "email": "carlos@example.com",
+        "password": "car123"
+      },
+      {
+        "name": "Maria",
+        "description": "Gestora",
+        "email": "maria@example.com",
+        "password": "mar456"
+      },
+      {
+        "name": "Pedro",
+        "description": "Ayudante",
+        "email": "pedro@example.com",
+        "password": "ped789"
+      },
+      {
+        "name": "Lucia",
+        "description": "Analista",
+        "email": "lucia@example.com",
+        "password": "luc987"
+      },
+      {
+        "name": "Javier",
+        "description": "Desarrollador",
+        "email": "javier@example.com",
+        "password": "jav654"
+      },
+      {
+        "name": "Sofia",
+        "description": "Diseñadora",
+        "email": "sofia@example.com",
+        "password": "sof321"
+      },
+      {
+        "name": "Miguel",
+        "description": "Tester",
+        "email": "miguel@example.com",
+        "password": "mig111"
+      },
+      {
+        "name": "Ana",
+        "description": "Project Manager",
+        "email": "ana@example.com",
+        "password": "ana222"
+      },
+      {
+        "name": "Diego",
+        "description": "Ingeniero",
+        "email": "diego@example.com",
+        "password": "die333"
+      },
+      {
+        "name": "Valeria",
+        "description": "QA",
+        "email": "valeria@example.com",
+        "password": "val444"
+      }
+    ]
+  }
+}
