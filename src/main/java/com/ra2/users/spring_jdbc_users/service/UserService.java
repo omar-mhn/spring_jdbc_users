@@ -20,27 +20,49 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.ra2.users.spring_jdbc_users.logging.CustomLoggin;
 import com.ra2.users.spring_jdbc_users.model.Usuari;
 import com.ra2.users.spring_jdbc_users.repository.UsuariRepository;
 
 @Service
 public class UserService {
 
-   @Autowired
+    @Autowired
     UsuariRepository usuariRepository;
     @Autowired
     ObjectMapper mapper;
+    @Autowired
+    private CustomLoggin customLoggin;
 
     public List<Usuari> findAll() {
-        return usuariRepository.findAll();
+        customLoggin.LogInfo("UserService", "findAll", "Find all users");
+        try{
+            return usuariRepository.findAll();    
+        }catch(Exception e){
+            customLoggin.LogError("UserService", "findAll", "Can't find all users in the database", e);
+            throw e;
+        }
     }
-
     public int addUser(Usuari user){
-        int numReg = usuariRepository.save(user);
-        return numReg;
+        customLoggin.LogInfo("UserService", "addUser", "Add a user in the database");
+        try{
+            int numReg = usuariRepository.save(user);
+            return numReg;
+        }catch(Exception e ){
+            customLoggin.LogError("UserService", "addUser","Can't add user" , e);
+            throw e ;
+        }
+        
     }
     public List<Usuari> findUserById(long id){
-        return usuariRepository.findUserById(id);
+        customLoggin.LogInfo("UserService", "findUserById", "Find a user with id" + id);
+        try{
+            return usuariRepository.findUserById(id);
+        }catch (Exception e){
+            customLoggin.LogError("UserSerive","findUserById", "User with id "+id+" not found", e);
+            throw e ;
+        }
+        
     }
 
     public int update(Long id, Usuari usuari){
