@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.util.ExceptionUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.ra2.users.spring_jdbc_users.logging.CustomLoggin;
 import com.ra2.users.spring_jdbc_users.model.Usuari;
@@ -43,192 +44,277 @@ public class UserService {
             throw e;
         }
     }
-    public int addUser(Usuari user){
-        customLoggin.LogInfo("UserService", "addUser", "Add a user in the database");
-        try{
-            int numReg = usuariRepository.save(user);
-            return numReg;
-        }catch(Exception e ){
-            customLoggin.LogError("UserService", "addUser","Can't add user" , e);
-            throw e ;
-        }
-        
-    }
-    public List<Usuari> findUserById(long id){
-        customLoggin.LogInfo("UserService", "findUserById", "Find a user with id" + id);
-        try{
-            return usuariRepository.findUserById(id);
-        }catch (Exception e){
-            customLoggin.LogError("UserSerive","findUserById", "User with id "+id+" not found", e);
-            throw e ;
-        }
-        
-    }
+ public int addUser(Usuari user) {
+    customLoggin.LogInfo("UserService", "addUser", "Creating a user");
+    try {
+        int numReg = usuariRepository.save(user);
 
-    public int update(Long id, Usuari usuari){
-        return usuariRepository.update(id, usuari);
-    }
+        if (numReg > 0) {
+            customLoggin.LogInfo("UserService", "addUser", "User created correctly");
+        } else {
+            customLoggin.LogError("UserService", "addUser", "Can't create the user", new Exception("No rows affected"));
+        }
+        return numReg;
 
-    public int patch(long id, String newName){
-        return usuariRepository.patch(id, newName);
+    } catch (Exception e) {
+        customLoggin.LogError("UserService", "addUser", "Can't create the user", e);
+        throw e;
     }
+}
+    public List<Usuari> findUserById(long id) {
+    customLoggin.LogInfo("UserService", "findUserById", "Find user with id " + id);
+    
+    try {
+        List<Usuari> users = usuariRepository.findUserById(id);
+
+        if (users.isEmpty()) {
+            customLoggin.LogError("UserService", "findUserById", "User with id " + id + " not found", new Exception("User not found (empty list)"));
+        } else {
+             customLoggin.LogInfo("UserService", "findUserById", "User found");
+        }
+
+        return users;
+
+    } catch (Exception e) {
+        // Ce catch ne sert que si la BDD est cassée
+        customLoggin.LogError("UserService", "findUserById", "Technical error searching user", e);
+        throw e;
+    }
+}
+
+    public int update(Long id, Usuari usuari) {
+    customLoggin.LogInfo("UserService", "update", "Updating user with id " + id);
+    try {
+        int result = usuariRepository.update(id, usuari);
+
+        if (result > 0) {
+            customLoggin.LogInfo("UserService", "update", "User with id " + id + " has been updated");
+        } else {
+            customLoggin.LogError("UserService", "update", "User with id " + id + " doesn't exist", new Exception("User not found"));
+        }
+        return result;
+
+    } catch (Exception e) {
+        customLoggin.LogError("UserService", "update", "Technical error updating user " + id, e);
+        throw e;
+    }
+}
+
+   public int patch(long id, String newName) {
+    customLoggin.LogInfo("UserService", "patch", "Update user with id " + id);
+    try {
+        int result = usuariRepository.patch(id, newName);
+
+        if (result > 0) {
+            customLoggin.LogInfo("UserService", "patch", "User with id " + id + " updated");
+        } else {
+            customLoggin.LogError("UserService", "patch", "User with id " + id + " doesn't exist", new Exception("User not found"));
+        }
+        return result;
+
+    } catch (Exception e) {
+        customLoggin.LogError("UserService", "patch", "Technical error patching user " + id, e);
+        throw e;
+    }
+}
 
     public int delete(Long id){
-        return usuariRepository.delete(id);
+
+        customLoggin.LogInfo("UserService", "delete", "Delete user with id "+id);
+        try{
+            int result = usuariRepository.delete(id);
+            if(result>0){
+                 customLoggin.LogInfo("UserService", "delete", "User with id "+id+" has been deleted");
+            }else{
+            customLoggin.LogError("UserService", "delete", "User with id "+id+" doesn't exist ", new Exception("User not fount"));
+
+            }
+           
+            return result;
+
+        }catch (Exception e){
+            customLoggin.LogError("UserService", "delete", "Technical error during delete ", e);
+            throw e;
+        }
     }
 
-    public String saveUserImage(long userId, MultipartFile imagFile) throws Exception{
-        // Verificar el usuario 
-        List <Usuari> user = usuariRepository.findUserById(userId);
-        System.out.println(user);
-        if(user.isEmpty()){
-            throw new Exception("Usuari amb id " + userId + " no trobat");
+    public String saveUserImage(long userId, MultipartFile imagFile) throws Exception {
+        customLoggin.LogInfo("UserService", "saveUserImage", "Adding image " + imagFile.getOriginalFilename() + " to user with id " + userId);
+        try {
+            // 1. Correction logique : Vérifier si la liste est vide
+            List<Usuari> user = usuariRepository.findUserById(userId);
+            if (user.isEmpty()) {
+                throw new Exception("User with id " + userId + " not found");
+            }
+
+            // 2. Créer dossier
+            Path imagesFolder = Paths.get("src/main/resources/public/images");
+            if (!Files.exists(imagesFolder)) {
+                Files.createDirectories(imagesFolder);
+            }
+
+            // 3. Créer nom fichier
+            String originalFileName = imagFile.getOriginalFilename();
+            // Attention : gestion simple de l'extension, peut planter si pas de point
+            String extension = "";
+            if (originalFileName != null && originalFileName.contains(".")) {
+                extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+            }
+            String newFileName = "User_" + userId + extension;
+            Path filePath = imagesFolder.resolve(newFileName);
+
+            // 4. Sauvegarder fichier
+            try (InputStream inputStream = imagFile.getInputStream()) {
+                Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            // 5. Update BDD
+            String imagePath = "/images/" + newFileName;
+            usuariRepository.updateImagePath(userId, imagePath);
+            
+            // Correction espace manquant après le point
+            customLoggin.LogInfo("UserService", "saveUserImage", "The image has been successfully saved. The path is: " + imagePath);
+
+            return imagePath;
+
+        } catch (Exception e) {
+            // Correction espace manquant avant "doesn't"
+            customLoggin.LogError("UserService", "saveUserImage", "User with id " + userId + " doesn't exist or error saving", e);
+            throw e;
         }
-
-        // Crear carpeta si necesario 
-        Path imagesFolder = Paths.get("src/main/resources/public/images");
-        if(!Files.exists(imagesFolder)){
-            Files.createDirectories(imagesFolder);
-        }
-
-        // Crear el nom delfitxer
-
-        String originalFileName = imagFile.getOriginalFilename();
-        String extention = originalFileName.substring(originalFileName.lastIndexOf("."));
-        String newFileName = "User_" + userId+extention;
-        // resolve permet de combiner le dossier et le nom du fichier pour obtenir le chemin complet
-        Path filePath = imagesFolder.resolve(newFileName);
-
-        // Desar el fitxer 
-        //imageFile.getInputStream() permite leer el contenido del archivo que envía el client
-        try(InputStream inputStream = imagFile.getInputStream()){
-            //StandardCopyOption.REPLACE_EXISTING sobrescribe un archivo con el mismo nombre si ya existe.
-            Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-        }
-        //Actualizar la ruta en la base de datos
-        String imagePath = "/images/" + newFileName;
-        usuariRepository.updateImagePath(userId, imagePath);
-
-        //URL de l?image
-        return imagePath;
     }
-    public int saveUserCsv(MultipartFile csvFile){
-        
+
+    public int saveUserCsv(MultipartFile csvFile) {
+        customLoggin.LogInfo("UserService", "saveUserCsv", "Load information from this CSV file " + csvFile.getName());
         int comptador = 0;
-        Timestamp now = new Timestamp(System.currentTimeMillis()); 
-        try(BufferedReader br = new BufferedReader(new InputStreamReader(csvFile.getInputStream()))){
+        int errors = 0;
+        Timestamp now = new Timestamp(System.currentTimeMillis());
 
-            String linia; 
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(csvFile.getInputStream()))) {
+            String linia;
             int numLinia = 0;
 
-                while ((linia = br.readLine()) != null) {
-                    numLinia ++;
-                    if(numLinia == 1){
-                        continue; // Saltar capçalera
-                    }
-                    if (linia.trim().isEmpty()) {
-                    continue;
-                    }
-                    String [] col = linia.split(",");
-                    if (col.length < 4) continue;
+            while ((linia = br.readLine()) != null) {
+                numLinia++;
+                if (numLinia == 1) continue; 
+                if (linia.trim().isEmpty()) continue;
+                
+                String[] col = linia.split(",");
+                if (col.length < 4) continue;
 
-                    String name = col[0];
-                    String description = col[1];
-                    String email = col[2];
-                    String password = col[3];
+                String name = col[0];
+                String description = col[1];
+                String email = col[2];
+                String password = col[3];
 
-                    Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                Usuari user = new Usuari();
+                user.setName(name);
+                user.setDescription(description);
+                user.setEmail(email);
+                user.setPassword(password);
+                user.setDataCreated(now);
+                user.setDataUpdated(now);
+                user.setUltimAcces(now);
 
-                    Usuari user = new Usuari();
-                    user.setName(name);
-                    user.setDescription(description);
-                    user.setEmail(email);
-                    user.setPassword(password);
-                    user.setDataCreated(timestamp);
-                    user.setDataUpdated(timestamp);
-                    user.setUltimAcces(timestamp);
-
+                try {
                     usuariRepository.save(user);
-                    comptador++;           
+                    comptador++;
+                } catch (Exception e) {
+                    customLoggin.LogError("UserService", "saveUserCsv", "Error on line " + linia, e);
+                    errors++;
                 }
+            }
+
+            Path csvFolder = Paths.get("src/main/resources/public/csv_processed");
+            if (!Files.exists(csvFolder)) {
+                try {
+                    Files.createDirectories(csvFolder);
+                } catch (Exception e) {
+                    customLoggin.LogError("UserService", "saveUserCsv", "Cannot create directory", e);
+                }
+            }
             
-                Path csvFolder = Paths.get("src/main/resources/public/csv_processed");
-                    if(!Files.exists(csvFolder)){
-                        Files.createDirectories(csvFolder);
-                    }
-                    String originalFileName = csvFile.getOriginalFilename();
-                    Path filePath = csvFolder.resolve(originalFileName);
-                    Files.copy(csvFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        
+            String originalFileName = csvFile.getOriginalFilename();
+            Path filePath = csvFolder.resolve(originalFileName);
+            try {
+                Files.copy(csvFile.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            } catch (Exception e) {
+                customLoggin.LogError("UserService", "saveUserCsv", "Failed to save the file", e);
+            }
+
         } catch (IOException e) {
-            // Errors generals d'E/S
-            System.err.println("ERROR d'accés al fitxer: " + e.getMessage());
+            System.err.println("ERROR accessing file: " + e.getMessage());
+            customLoggin.LogError("UserService", "saveUserCsv", "Error reading the file", e);
         }
-            return comptador;
+
+        // Correction "records"
+        customLoggin.LogInfo("UserService", "saveUserCsv", comptador + " records saved successfully, " + errors + " records failed.");
+        return comptador;
     }
 
-
-    public int saveUserJson(MultipartFile jsonFile){
+    public int saveUserJson(MultipartFile jsonFile) {
+        // Correction "UserService" au lieu de "ServiceUser"
+        customLoggin.LogInfo("UserService", "saveUserJson", "Loading information from file " + jsonFile.getName());
         int comptador = 0;
+        int errors = 0; // Correction variable "erros"
         Timestamp now = new Timestamp(System.currentTimeMillis());
-        // Leer el contenido del archivo JSON
-        try{
+
+        try {
             JsonNode arrel = mapper.readTree(jsonFile.getInputStream());
             JsonNode data = arrel.path("data");
-            // Obtener el valor de count y control
+            
             int count = data.path("count").asInt();
             String control = data.path("control").asText();
-            //Comprobar que el control sea "OK"
-            if (!control.equals("OK")){
-                return -1 ; // Control incorrecto
+
+            if (!control.equals("OK")) {
+                return -1;
             }
             JsonNode users = data.path("users");
-            //Comprobar que la lista de usuarios tenga el mismo tamaño que count 
 
-            if(users.size() != count ){
-                return -3; // El número de usuarios no coincide
+            if (users.size() != count) {
+                return -3;
             }
 
-            for(JsonNode user:users){
+            for (JsonNode user : users) {
                 String name = user.path("name").asText();
                 String description = user.path("description").asText();
                 String email = user.path("email").asText();
                 String password = user.path("password").asText();
 
                 Usuari usuari = new Usuari(name, description, email, password, now, now, now);
-                
-            // Intentar guardar en la base de datos
-                try{
+
+                try {
                     usuariRepository.save(usuari);
-                    comptador ++;
+                    comptador++;
                 } catch (Exception e) {
-                System.err.println("Error guardando el usuario");
+                    customLoggin.LogError("UserService", "saveUserJson", "Error saving user", e);
+                    errors++; // Correction variable
+                    System.err.println("Error saving user"); // Traduction Anglais
                 }
             }
-            
-        // Error leyendo el JSON
-        }catch(Exception e){
+
+        } catch (Exception e) {
+            customLoggin.LogError("UserService", "saveUserJson", "Error reading Json", e);
             return -2;
         }
-        //Guardar el archivo JSON procesado en la carpeta json_processed
-        try{
-         // Crear la carpeta si no existe
+
+        try {
             Path directory = Paths.get("src/main/resources/public/json_processed/");
             Path targetFile = directory.resolve(jsonFile.getOriginalFilename());
 
             Files.createDirectories(directory);
-
-            // Guardar el archivo, reemplazando si ya existe
             Files.copy(jsonFile.getInputStream(), targetFile, StandardCopyOption.REPLACE_EXISTING);
-        
-        }catch (Exception e){
-            System.err.println("No se ha podido guardar el JSON");
-        }
-          
-        return comptador;
-        
-    }
 
+        } catch (Exception e) {
+            customLoggin.LogError("UserService", "saveUserJson", "Could not save the JSON file", e);
+            System.err.println("Could not save the JSON file"); // Traduction Anglais
+        }
+
+        // Correction "records"
+        customLoggin.LogInfo("UserService", "saveUserJson", comptador + " records saved successfully, " + errors + " records failed.");
+
+        return comptador;
+    }
 }
     
 

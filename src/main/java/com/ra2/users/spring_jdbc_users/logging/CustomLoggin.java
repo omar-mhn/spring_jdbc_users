@@ -44,7 +44,7 @@ public class CustomLoggin {
     public void LogError(String className, String method, String errorMsg,Exception exception){
 
         String timestamp = LocalDateTime.now().format(formatter);
-        String logEntry = String.format("[ERROR] %s - Class: %s - Method: %s - Description: % s ", timestamp,className,method,errorMsg);
+        String logEntry = String.format("[ERROR] %s - Class: %s - Method: %s - Description: %s ", timestamp,className,method,errorMsg);
         
         if(exception != null){
             logEntry += "Exception - " + exception.getMessage();
